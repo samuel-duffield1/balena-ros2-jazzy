@@ -1,0 +1,8 @@
+version: "2"
+
+services:
+  ros2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    network_mode: host
