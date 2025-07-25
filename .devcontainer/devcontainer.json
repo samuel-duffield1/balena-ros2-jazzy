@@ -1,0 +1,12 @@
+{
+    "name": "ROS 2 Development Container",
+    "privileged": true,
+    "build": {
+        "dockerfile": "../Dockerfile"
+    },
+    "overrideCommand": true,
+    "runArgs": ["--network=host"],
+    "workspaceFolder": "/app",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/app,type=bind",
+    "postCreateCommand": "echo 'source /opt/ros/jazzy/setup.sh' >> ~/.bashrc && rosdep init && rosdep update"
+}
