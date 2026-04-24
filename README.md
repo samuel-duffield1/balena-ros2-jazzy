@@ -38,6 +38,33 @@ You can change the recorder behaviour with service environment variables in [doc
 - `ROSBAG_RECORD_ARGS` controls which topics are recorded. The default is `-a` to record all topics.
 - `ROSBAG_STORAGE_ID` defaults to `mcap`.
 
+### Validate Logging with `mcap cat`
+
+After starting the stack, you can validate that messages were really written to MCAP by reading one bag file.
+
+1. Let the demo run for a few seconds:
+
+```bash
+docker compose up --build
+```
+
+2. In a second terminal, copy the newest non-empty MCAP file out of the container:
+
+```bash
+MCAP_IN_CONTAINER="$(docker compose exec -T ros2 sh -lc 'find /data/mcap -type f -name "*.mcap" -size +0c -printf "%T@ %p\n" | sort -nr | head -n 1 | cut -d" " -f2-')"
+docker compose cp "ros2:${MCAP_IN_CONTAINER}" ./latest-demo.mcap
+```
+
+Note: the actively-written bag file can be temporarily 0 bytes while recording is still in progress. Selecting the newest non-empty file avoids this race.
+
+3. Print records with the `mcap cat` CLI:
+
+```bash
+mcap cat ./latest-demo.mcap | head -n 20
+```
+
+If recording is working, the output will contain messages from the `topic` channel, including values like `Hello, world! N`.
+
 ## Developing - Using Devcontainers
 This project also provides a basic `.devcontainer` setup for prototyping your ROS2 application on Windows/MacOS/Linux before deploying to your Edge Compute device.
 
