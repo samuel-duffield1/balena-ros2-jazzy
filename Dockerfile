@@ -1,15 +1,15 @@
 FROM ros:jazzy-ros-core
 
-# Install ROS Jazzy Runtime and Demo Nodes
-RUN apt-get update && apt-get install -y \
-    ros-jazzy-demo-nodes-cpp
-
-# Install additional dependencies for building (development tools only)
-RUN apt-get update && apt-get install -y \
+# Install the demo talker, rosbag tooling, and the MCAP storage plugin.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-jazzy-demo-nodes-cpp \
+    ros-jazzy-ros2bag \
+    ros-jazzy-rosbag2-storage-mcap \
     python3-rosdep \
     python3-colcon-common-extensions \
     build-essential \
-    git
+    git \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY . .

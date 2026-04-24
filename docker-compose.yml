@@ -1,8 +1,18 @@
-version: '2'
+version: '2.1'
+
+volumes:
+  ros-logs:
 
 services:
   ros2:
     build:
       context: .
       dockerfile: Dockerfile
+    environment:
+      MCAP_OUTPUT_ROOT: /data/mcap
+      ROSBAG_RECORD_ARGS: -a
+      ROSBAG_STORAGE_ID: mcap
+    # WARNING: Keep host networking only if ROS 2 discovery needs it on the target device.
     network_mode: host
+    volumes:
+      - ros-logs:/data
