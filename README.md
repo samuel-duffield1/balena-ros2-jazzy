@@ -22,6 +22,22 @@ ros2-1  | [INFO] [1753370308.122677881] [talker]: Publishing: 'Hello World: 10'
 ...
 ```
 
+At the same time, the container records ROS 2 traffic to MCAP bags under `/data/mcap`, which is backed by a named Docker volume so recordings persist across container updates on balena devices.
+
+If you are running locally with Docker Compose, start the stack with:
+
+```bash
+docker compose up --build
+```
+
+Recorded bags will be stored in the `ros-logs` volume, with one timestamped directory per container start.
+
+You can change the recorder behaviour with service environment variables in [docker-compose.yml](/Users/samd/Projects/balena-ros2-jazzy/docker-compose.yml):
+
+- `MCAP_OUTPUT_ROOT` sets the in-container root directory for bag files.
+- `ROSBAG_RECORD_ARGS` controls which topics are recorded. The default is `-a` to record all topics.
+- `ROSBAG_STORAGE_ID` defaults to `mcap`.
+
 ## Developing - Using Devcontainers
 This project also provides a basic `.devcontainer` setup for prototyping your ROS2 application on Windows/MacOS/Linux before deploying to your Edge Compute device.
 
@@ -37,3 +53,7 @@ You can deploy this robotics application to [any supported device on Balena](htt
 ```bash
 balena push <org>/<fleet>
 ```
+
+For balena deployments, the project now follows the multicontainer pattern with a named volume in [docker-compose.yml](/Users/samd/Projects/balena-ros2-jazzy/docker-compose.yml), which is the supported way to persist application data on balenaOS.
+
+The repository also includes [balena.yml](/Users/samd/Projects/balena-ros2-jazzy/balena.yml) with basic fleet metadata for balena-style project packaging.
