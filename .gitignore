@@ -3,3 +3,4 @@ install/
 log/
 *DS_Store
 *.mcap
+.claude/

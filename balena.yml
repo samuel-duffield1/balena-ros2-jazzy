@@ -1,6 +1,6 @@
 name: balena-ros2-jazzy
 type: sw.application
-version: 0.1.0
+version: 0.2.0
 description: >-
   Minimal ROS 2 Jazzy publisher example for balena with persistent MCAP bag
   logging to a named volume.

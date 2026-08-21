@@ -1,1 +1,15 @@
+# The devcontainer/editor config is only needed on the host.
 /.devcontainer
+/.vscode
+/.git
+/.gitignore
+
+# Host-side colcon output. Docker matches these from the context root, so the
+# **/ prefix is what catches cpp_pubsub/build and friends.
+**/build/
+**/install/
+**/log/
+
+# Recorded bags belong in the /data volume, not in the image.
+**/*.mcap
+**/.DS_Store

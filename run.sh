@@ -1,4 +1,7 @@
 #!/bin/bash
+# The container workload, wired up as the image CMD. It assumes the ROS 2
+# environment is already sourced, which /entrypoint.sh takes care of.
+# Edit this for your custom application (e.g. `ros2 run cpp_pubsub talker`).
 
 set -euo pipefail
 
@@ -27,11 +30,11 @@ cleanup() {
 trap cleanup EXIT SIGINT SIGTERM
 
 echo "Starting ROS publisher: ${ROS_TALKER_COMMAND}"
-bash -lc "${ROS_TALKER_COMMAND}" &
+bash -c "${ROS_TALKER_COMMAND}" &
 talker_pid=$!
 
 echo "Recording MCAP bag to ${output_dir}"
-bash -lc "ros2 bag record ${ROSBAG_RECORD_ARGS} -s ${ROSBAG_STORAGE_ID} -o '${output_dir}'" &
+bash -c "ros2 bag record ${ROSBAG_RECORD_ARGS} -s ${ROSBAG_STORAGE_ID} -o '${output_dir}'" &
 rosbag_pid=$!
 
 status=0

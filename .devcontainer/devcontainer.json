@@ -1,12 +1,35 @@
 {
     "name": "ROS 2 Development Container",
-    "privileged": true,
     "build": {
-        "dockerfile": "../Dockerfile"
+        "dockerfile": "../Dockerfile",
+        // Without this the build context would be .devcontainer/ and the
+        // Dockerfile's `COPY . .` would find none of the project files.
+        "context": ".."
     },
+    // Suppresses the image CMD (/run.sh) so the container idles and you drive
+    // ROS by hand. The ENTRYPOINT is replaced too, which is why the Dockerfile
+    // also sources ROS from /etc/bash.bashrc for interactive shells.
     "overrideCommand": true,
+    // Mirrors docker-compose.yml. Only takes effect on a Linux host; drop both
+    // of these if you are not prototyping against host hardware or a host ROS graph.
+    "privileged": true,
     "runArgs": ["--network=host"],
     "workspaceFolder": "/app",
     "workspaceMount": "source=${localWorkspaceFolder},target=/app,type=bind",
-    "postCreateCommand": "echo 'source /opt/ros/jazzy/setup.sh' >> ~/.bashrc && rosdep init && rosdep update"
+    // Stands in for the `ros-logs` volume in docker-compose.yml so bags recorded
+    // during development survive a container rebuild.
+    "mounts": [
+        "source=balena-ros2-jazzy-data,target=/data,type=volume"
+    ],
+    // ros:jazzy-ros-core does not bootstrap rosdep (only ros-base does), so it
+    // is still needed here for `rosdep install` on cpp_pubsub/package.xml.
+    "onCreateCommand": "rosdep init 2>/dev/null || true; rosdep update",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools-extension-pack",
+                "ms-iot.vscode-ros"
+            ]
+        }
+    }
 }

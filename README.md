@@ -32,11 +32,32 @@ docker compose up --build
 
 Recorded bags will be stored in the `ros-logs` volume, with one timestamped directory per container start.
 
-You can change the recorder behaviour with service environment variables in [docker-compose.yml](/Users/samd/Projects/balena-ros2-jazzy/docker-compose.yml):
+You can change the recorder behaviour with service environment variables in [docker-compose.yml](./docker-compose.yml):
 
 - `MCAP_OUTPUT_ROOT` sets the in-container root directory for bag files.
 - `ROSBAG_RECORD_ARGS` controls which topics are recorded. The default is `-a` to record all topics.
 - `ROSBAG_STORAGE_ID` defaults to `mcap`.
+
+## How the Container Starts
+
+The image splits environment setup from the workload, so the two can be changed independently:
+
+- [entrypoint.sh](./entrypoint.sh) is the `ENTRYPOINT`. It sources `/opt/ros/$ROS_DISTRO/setup.bash`,
+  overlays `cpp_pubsub/install/setup.bash` if you have built it, and then `exec`s its arguments.
+- [run.sh](./run.sh) is the `CMD`. It starts the talker and the `ros2 bag record` process.
+
+Because the entrypoint execs whatever it is handed, anything you run in the container inherits a
+working ROS environment without a wrapper of its own:
+
+```bash
+docker compose run --rm ros2 ros2 topic list
+docker compose run --rm ros2 bash
+```
+
+To swap in your own application, change the `CMD` in the [Dockerfile](./Dockerfile) (or edit
+[run.sh](./run.sh)) and leave the entrypoint alone. `docker exec` sessions and `balena ssh` do not
+pass through the entrypoint, so the image also sources ROS from `/etc/bash.bashrc` for interactive
+shells.
 
 ### Validate Logging with `mcap cat`
 
@@ -70,6 +91,23 @@ This project also provides a basic `.devcontainer` setup for prototyping your RO
 
 Run the command `Dev Containers: Open folder in container` to begin building your ROS2 application on your host machine.
 
+The devcontainer reuses the same [Dockerfile](./Dockerfile) as the device image, with
+`overrideCommand: true` so the container idles instead of starting [run.sh](./run.sh). ROS 2 is
+already sourced in every terminal you open, and `rosdep` is bootstrapped by the container's
+`onCreateCommand`, so you can go straight to building:
+
+```bash
+cd /app/cpp_pubsub
+rosdep install -i --from-path . --rosdistro jazzy -y
+colcon build
+source install/setup.bash
+ros2 run cpp_pubsub talker
+```
+
+Note that `--network=host` and `privileged` in [devcontainer.json](./.devcontainer/devcontainer.json)
+mirror the device deployment but only take effect on a Linux host; drop them if you are not
+prototyping against host hardware or a ROS graph running outside the container.
+
 Source code can be found in [src](./cpp_pubsub/src/publisher_lambda_function.cpp).
 
 Follow the instructions on how to [build a cpp ROS2 application](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Cpp-Publisher-And-Subscriber.html) on the official ROS2 documentation site.
@@ -81,6 +119,6 @@ You can deploy this robotics application to [any supported device on Balena](htt
 balena push <org>/<fleet>
 ```
 
-For balena deployments, the project now follows the multicontainer pattern with a named volume in [docker-compose.yml](/Users/samd/Projects/balena-ros2-jazzy/docker-compose.yml), which is the supported way to persist application data on balenaOS.
+For balena deployments, the project now follows the multicontainer pattern with a named volume in [docker-compose.yml](./docker-compose.yml), which is the supported way to persist application data on balenaOS.
 
-The repository also includes [balena.yml](/Users/samd/Projects/balena-ros2-jazzy/balena.yml) with basic fleet metadata for balena-style project packaging.
+The repository also includes [balena.yml](./balena.yml) with basic fleet metadata for balena-style project packaging.
